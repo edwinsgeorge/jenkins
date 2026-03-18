@@ -11,30 +11,26 @@ pipeline {
 
         stage('Clone / Update Code') {
             steps {
-                script {
-                    if [ -d "${DEPLOY_DIR}/.git" ]; then
-                        sh """
-                        cd ${DEPLOY_DIR}
-                        echo "Existing repo found"
-                        git fetch origin ${BRANCH}
-                        git reset --hard origin/${BRANCH}
-                        """
-                    } else {
-                        sh """
-                        echo "Cloning fresh repo"
-                        git clone -b ${BRANCH} ${REPO} ${DEPLOY_DIR}
-                        """
-                    }
-                }
+                sh '''
+                if [ -d "${DEPLOY_DIR}/.git" ]; then
+                    echo "Existing repo found"
+                    cd ${DEPLOY_DIR}
+                    git fetch origin ${BRANCH}
+                    git reset --hard origin/${BRANCH}
+                else
+                    echo "Cloning fresh repo"
+                    git clone -b ${BRANCH} ${REPO} ${DEPLOY_DIR}
+                fi
+                '''
             }
         }
 
         stage('Restart Web Server') {
             steps {
-                sh """
+                sh '''
                 sudo systemctl restart httpd
                 systemctl is-active --quiet httpd && echo "httpd is running"
-                """
+                '''
             }
         }
     }
